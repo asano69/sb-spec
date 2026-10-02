@@ -1,0 +1,45 @@
+{
+  "title": null,
+  "children": [
+    {
+      "type": "img",
+      "href": "http://example.com",
+      "src": "http://example.com/example.png"
+    },
+    {
+      "type": "br",
+      "force": true
+    },
+    {
+      "type": "img",
+      "src": "http://example.com/example2.png"
+    },
+    {
+      "type": "text",
+      "href": "http://example.com",
+      "children": [
+        {
+          "type": "text",
+          "text": "Some text other than an image"
+        },
+        {
+          "type": "text",
+          "bold": true,
+          "text": "and bold"
+        },
+        {
+          "type": "text",
+          "text": "as well"
+        }
+      ]
+    },
+    {
+      "type": "br",
+      "force": true
+    },
+    {
+      "type": "text",
+      "text": "scroll to here"
+    }
+  ]
+}

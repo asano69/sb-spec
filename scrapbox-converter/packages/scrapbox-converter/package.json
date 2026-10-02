@@ -1,0 +1,37 @@
+{
+  "name": "scrapbox-converter",
+  "version": "7.0.0",
+  "bin": {
+    "scrapbox-converter": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "homepage": "https://github.com/pastak/scrapbox-converter/tree/master/packages/scrapbox-converter#readme",
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@github.com/pastak/scrapbox-converter.git"
+  },
+  "author": "pastak <pasta0915@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc --outDir dist --project .",
+    "lint": "biome check ./src",
+    "lint:fix": "biome check --write ./src",
+    "lint:ci": "biome ci ./src",
+    "watch": "pnpm run build -- --watch"
+  },
+  "dependencies": {
+    "@types/node": "20.14.8",
+    "commander": "^5.1.0",
+    "enex2sb": "workspace:*",
+    "html2sb-compiler": "workspace:*",
+    "lodash": "^4.17.23",
+    "md2sb": "workspace:*"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "typescript": "5.7.3",
+    "vitest": "^3.0.5"
+  }
+}
