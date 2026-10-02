@@ -1,0 +1,35 @@
+{
+  "name": "array-permutation-simple",
+  "version": "0.0.3",
+  "description": "return all permutations of array elements",
+  "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/.bin/run-s test:*",
+    "test:mocha": "./node_modules/.bin/mocha test",
+    "test:standard": "./node_modules/.bin/standard"
+  },
+  "keywords": [
+    "array",
+    "permutation"
+  ],
+  "author": "Sho Hashimoto <hashimoto@shokai.org>",
+  "license": "MIT",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.2.0",
+    "npm-run-all": "^4.0.2",
+    "standard": "^9.0.0"
+  },
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shokai/array-permutation-simple.git"
+  },
+  "bugs": {
+    "url": "https://github.com/shokai/array-permutation-simple/issues"
+  },
+  "homepage": "https://github.com/shokai/array-permutation-simple#readme"
+}
