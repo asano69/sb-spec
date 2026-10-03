@@ -1,0 +1,56 @@
+name: publish
+
+# packages/ のパッケージは、すべて同じバージョンで一緒に公開する。
+#   1. bun run release:version <版> でバージョンを揃えてコミットする
+#   2. v<版> のタグ (例: v0.1.0-beta.2) を push すると、ここで全部を公開する
+# 手で動かすときは、既定で公開せずに中身だけ確かめる。
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      dryRun:
+        description: "公開せず中身だけ確認する"
+        type: boolean
+        default: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    if: github.actor == github.repository_owner
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      - run: bun install --frozen-lockfile
+
+      - name: 検査
+        run: |
+          bun run lint
+          bun run format:check
+          bun run typecheck
+          bun run test
+
+      # タグから公開するときは、タグの版とパッケージの版が一致しなければ止める (--expect)。
+      - name: 公開する
+        run: |
+          npm --version
+          if [ "${{ github.event_name }}" = 'push' ]; then
+            bun run release:publish --expect "${GITHUB_REF_NAME#v}"
+          else
+            bun run release:publish ${{ inputs.dryRun == true && '--dry-run' || '' }}
+          fi

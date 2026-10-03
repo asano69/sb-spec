@@ -1,0 +1,91 @@
+import { describe, expect, it } from "vitest"
+
+import { parse, parseLine } from "../parse"
+import type { AnyNode } from "../types"
+import { createCompiler } from "./create-compiler"
+import { toPlainText } from "./to-plain-text"
+
+describe("toPlainText", () => {
+  it("記法を外して読める文字列にする", () => {
+    expect(toPlainText(parseLine("[* 太字] と [リンク] と `code` と #tag"))).toBe(
+      "太字 と リンク と code と tag",
+    )
+  })
+
+  it("装飾の中のリンクも展開する", () => {
+    expect(toPlainText(parseLine("[* 自由を奪う「[牢屋]」]"))).toBe("自由を奪う「牢屋」")
+  })
+
+  it("動画と埋め込みは URL にする", () => {
+    expect(toPlainText(parseLine("[https://x.test/a.mp4] [https://vimeo.com/1]"))).toBe(
+      "https://x.test/a.mp4 https://vimeo.com/1",
+    )
+  })
+
+  it("音声はラベルがあればラベル、無ければ URL にする", () => {
+    expect(toPlainText(parseLine("[BGM https://x.test/a.mp3] [https://x.test/b.mp3]"))).toBe(
+      "BGM https://x.test/b.mp3",
+    )
+  })
+
+  it("地図はラベルがあればラベル、無ければ座標にする", () => {
+    expect(toPlainText(parseLine("[東京駅 N35.68,E139.76] [S33.86,W151.2]"))).toBe(
+      "東京駅 -33.86,-151.2",
+    )
+  })
+
+  it("引用とインデントを保つ", () => {
+    expect(toPlainText(parseLine("  > 引用文"))).toBe("    > 引用文")
+  })
+
+  it("ページ全体を行区切りで返す", () => {
+    expect(toPlainText(parse("タイトル\n[リンク]\n\n最後"))).toBe("タイトル\nリンク\n\n最後")
+  })
+
+  it("コードブロックの中身をそのまま出す", () => {
+    expect(toPlainText(parse("タイトル\ncode:main.ts\n const a = 1"))).toBe(
+      "タイトル\nmain.ts\nconst a = 1",
+    )
+  })
+
+  it("テーブルをタブ区切りで出す", () => {
+    expect(toPlainText(parse("タイトル\ntable:t\n あ\tい"))).toBe("タイトル\nt\nあ\tい")
+  })
+
+  it("セルの中のリンクは、行と同じく表示の文字にする", () => {
+    expect(toPlainText(parse("タイトル\ntable:t\n [リンク]\t#tag"))).toBe(
+      "タイトル\nt\nリンク\ttag",
+    )
+  })
+})
+
+describe("createCompiler", () => {
+  it("ハンドラを差し替えて別の出力を作れる", () => {
+    const compile = createCompiler<string>({
+      handlers: {
+        page: (node, ctx) => ctx.children(node).join(""),
+        line: (node, ctx) => `<p>${ctx.children(node).join("")}</p>`,
+        title: (node) => `<h1>${node.value}</h1>`,
+        text: (node) => node.value,
+        internalLink: (node) => `<a href="/${node.target}">${node.label}</a>`,
+      },
+      fallback: (node, ctx) => ctx.children(node).join(""),
+    })
+    expect(compile(parse("タイトル\nこれは [リンク] です"))).toBe(
+      '<h1>タイトル</h1><p>これは <a href="/リンク">リンク</a> です</p>',
+    )
+  })
+
+  it("ハンドラが無いノードは fallback に回る", () => {
+    const seen: string[] = []
+    const compile = createCompiler<string>({
+      handlers: { text: (node) => node.value },
+      fallback: (node: AnyNode, ctx) => {
+        seen.push(node.type)
+        return ctx.children(node).join("")
+      },
+    })
+    expect(compile(parseLine("[* 太字]"))).toBe("太字")
+    expect(seen).toEqual(["line", "decoration"])
+  })
+})

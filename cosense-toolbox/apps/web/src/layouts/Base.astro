@@ -1,0 +1,172 @@
+---
+import "../styles/global.css"
+
+import SiteSearch from "../components/SiteSearch.astro"
+import { SITE } from "../lib/site"
+
+interface Props {
+  title?: string
+  description?: string
+  image?: string
+  app?: boolean
+  /** ドキュメントのように 3 カラムを並べる画面で、本文の枠を広げる */
+  wide?: boolean
+  /** 背景にぼかしたグラデーションを敷く */
+  home?: boolean
+}
+const {
+  title = "Cosense Toolbox",
+  description = "Cosense (旧Scrapbox) をもっと面白く、もっと強力に使うためのツール群",
+  image,
+  app = false,
+  wide = false,
+  home = false,
+} = Astro.props
+const fullTitle = title === "Cosense Toolbox" ? title : `${title} — Cosense Toolbox`
+
+const siteUrl = Astro.site ?? new URL("https://cosense-toolbox.qaynam.dev")
+const canonicalURL = new URL(Astro.url.pathname, siteUrl)
+const ogImageURL = new URL(image ?? "/og.png", siteUrl)
+---
+
+<!doctype html>
+<html lang="ja" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Cosense Toolbox" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:image" content={ogImageURL} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="ja_JP" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageURL} />
+
+    <link rel="icon" href="/favicon.png" type="image/png" sizes="64x64" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>{fullTitle}</title>
+    <script is:inline>
+      ;(function () {
+        try {
+          let t = localStorage.getItem("cosense-toolbox-theme")
+          if (!t) t = matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"
+          document.documentElement.setAttribute("data-theme", t)
+        } catch {}
+      })()
+    </script>
+  </head>
+  <body class={[app && "is-app", home && "is-home"].filter(Boolean).join(" ") || undefined}>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href="/">
+          <img class="logo" src="/beaver.png" alt="" width="30" height="30" />
+          <span class="brand-name">Cosense Toolbox</span>
+        </a>
+        <div class="header-actions">
+          <nav>
+            <a href="/docs/">ドキュメント</a>
+            <a href="/builder/">テーマ作成</a>
+            <a href={SITE.github} target="_blank" rel="noopener">
+              GitHub ↗
+            </a>
+          </nav>
+          <SiteSearch />
+          <button class="icon-btn" data-theme-toggle aria-label="テーマ切替" type="button">
+            ☀
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class={app ? "main-app" : wide ? "wrap wrap-wide" : "wrap"}>
+      <slot />
+    </main>
+
+    {!app && (
+      <footer class="site-footer">
+        <div class="wrap">
+          <a href={SITE.github} target="_blank" rel="noopener">
+            GitHub ↗
+          </a>
+        </div>
+      </footer>
+    )}
+
+    <script>
+      const THEME_KEY = "cosense-toolbox-theme"
+
+      async function clip(text: string, btn?: HTMLElement | null) {
+        try {
+          await navigator.clipboard.writeText(text)
+          if (btn) {
+            const l = (btn.querySelector(".label") as HTMLElement) || btn
+            const prev = l.textContent
+            btn.classList.add("copied")
+            l.textContent = "コピー済み ✓"
+            setTimeout(() => {
+              btn.classList.remove("copied")
+              l.textContent = prev
+            }, 1400)
+          }
+        } catch {}
+      }
+
+      function syncTheme() {
+        const dark = document.documentElement.getAttribute("data-theme") !== "light"
+        document.querySelectorAll("[data-theme-toggle]").forEach((b) => {
+          b.textContent = dark ? "☀" : "🌙"
+          b.setAttribute("aria-label", dark ? "ライトモードに切替" : "ダークモードに切替")
+        })
+      }
+
+      /* ---------- クリック委譲 ---------- */
+      document.addEventListener("click", async (e) => {
+        const t = e.target as HTMLElement
+
+        const copyBtn = t.closest<HTMLElement>("[data-copy]")
+        if (copyBtn) {
+          clip(copyBtn.getAttribute("data-copy") || "", copyBtn)
+          return
+        }
+        const themeBtn = t.closest<HTMLElement>("[data-theme-toggle]")
+        if (themeBtn) {
+          const next =
+            document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light"
+          // 色が一斉に切り替わるよう、この 1 フレームだけ遷移を止める
+          document.documentElement.classList.add("is-theme-switching")
+          document.documentElement.setAttribute("data-theme", next)
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              document.documentElement.classList.remove("is-theme-switching")
+            })
+          })
+          try {
+            localStorage.setItem(THEME_KEY, next)
+          } catch {}
+          syncTheme()
+          return
+        }
+      })
+
+      syncTheme()
+    </script>
+  </body>
+</html>

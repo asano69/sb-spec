@@ -1,0 +1,1471 @@
+@import "@cosense-toolbox/style";
+
+:root {
+  /* モノトーン・ダーク（Cosense #111 ベース） */
+  --bg: #111111;
+  --bg-soft: #181818;
+  --bg-card: #161616;
+  --bg-elev: #1e1e1e;
+  --border: #2c2c2c;
+  --border-soft: #232323;
+  --text: #e8e8e8;
+  --text-dim: #9a9a9a;
+  --text-faint: #8a8a8a;
+  --accent: #cfcfcf;
+  --code-bg: #1b1b1b;
+  --code-block-bg: var(--code-bg);
+  --warn: #e3b341;
+  --warn-bg: rgba(227, 179, 65, 0.1);
+  --font-sans: Roboto, "Noto Sans JP", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+  --radius: 12px;
+  --maxw: 1180px;
+  font-synthesis: none;
+}
+
+/* モノトーン・ライト（Cosense デフォルト寄り） */
+:root[data-theme="light"] {
+  --bg: #ffffff;
+  --bg-soft: #f3f3f1;
+  --bg-card: #ffffff;
+  --bg-elev: #efefed;
+  --border: #e3e3e0;
+  --border-soft: #ededec;
+  --text: #1d1d1d;
+  --warn: #8a6100;
+  --warn-bg: rgba(138, 97, 0, 0.1);
+  --text-dim: #5c5c5c;
+  --text-faint: #6e6e6e;
+  --accent: #333333;
+  --code-bg: #f3f3f1;
+  /* コードの色 (github-light-default) は白地でコントラストが足りるように作られている */
+  --code-block-bg: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* テーマの切り替え中だけ遷移を止める。
+ * hover 用の `transition: all` が色にも掛かるので、要素ごとに変わる速さがずれて
+ * 一部だけ遅れて切り替わったように見えてしまう。 */
+:root.is-theme-switching,
+:root.is-theme-switching *,
+:root.is-theme-switching *::before,
+:root.is-theme-switching *::after {
+  transition: none !important;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+.wrap {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.wrap-wide {
+  max-width: 1420px;
+}
+
+/* ---------- header ---------- */
+.site-header {
+  border-bottom: 1px solid var(--border-soft);
+  /* backdrop-filter が効かない環境でも文字が読めるよう、不透明側を先に置く */
+  background: var(--bg);
+  background: color-mix(in srgb, var(--bg) 62%, transparent);
+  /* saturate を足すと、背後のグラデーションが曇らずに透ける。
+     -webkit- を手で併記すると Lightning CSS が無印のほうを落とすので、
+     プレフィックスはビルドに任せる。 */
+  backdrop-filter: saturate(180%) blur(18px);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.site-header .wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 58px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.brand .logo {
+  width: 30px;
+  height: 30px;
+  display: block;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.site-header nav {
+  display: flex;
+  gap: 18px;
+  font-size: 13.5px;
+  color: var(--text-dim);
+}
+.site-header nav a:hover {
+  color: var(--text);
+}
+
+.icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--bg-soft);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 15px;
+  display: grid;
+  place-items: center;
+  font-family: inherit;
+  line-height: 1;
+  transition: all 0.15s ease;
+}
+.icon-btn:hover {
+  color: var(--text);
+  border-color: var(--text-faint);
+}
+
+/* ---------- 検索 (Cmd+K) ---------- */
+.search-btn {
+  width: auto;
+  gap: 8px;
+  padding: 0 10px;
+  grid-auto-flow: column;
+}
+.search-kbd {
+  padding: 1px 5px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+@media (max-width: 640px) {
+  .search-btn {
+    width: 34px;
+    padding: 0;
+  }
+  .search-btn .search-kbd {
+    display: none;
+  }
+}
+.search-dialog {
+  width: min(40rem, calc(100vw - 32px));
+  max-height: min(34rem, calc(100vh - 96px));
+  margin: 72px auto auto;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+.search-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+.search-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+.search-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--text-dim);
+}
+.search-input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  outline: none;
+}
+.search-results {
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  overflow-y: auto;
+}
+.search-results:empty {
+  display: none;
+}
+.search-results a {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: var(--text);
+}
+.search-results a[aria-selected="true"],
+.search-results a:hover {
+  background: var(--bg-elev);
+}
+.search-result-title {
+  display: block;
+  font-weight: 600;
+}
+.search-result-excerpt {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+.search-result-excerpt mark {
+  background: none;
+  color: var(--text);
+  font-weight: 700;
+}
+.search-status {
+  margin: 0;
+  padding: 8px 16px;
+  border-top: 1px solid var(--border-soft);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.search-status:empty {
+  display: none;
+}
+
+/* ---------- footer ---------- */
+.site-footer {
+  border-top: 1px solid var(--border-soft);
+  margin-top: 80px;
+  padding: 26px 0;
+  color: var(--text-faint);
+  font-size: 13px;
+}
+.site-footer .wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+}
+.site-footer a {
+  color: var(--text-dim);
+}
+.site-footer a:hover {
+  color: var(--text);
+}
+
+/* ---------- トップ ---------- */
+
+/* ぼかした mesh gradient。ビューポートより外まで広げて、
+   ぼかしの端がフェードとして見えないようにする。 */
+body.is-home::before {
+  content: "";
+  position: fixed;
+  top: -18vh;
+  right: -12vw;
+  left: -12vw;
+  height: 78vh;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(34rem 24rem at 16% 8%, rgba(110, 138, 243, 0.5), transparent 62%),
+    radial-gradient(30rem 20rem at 84% 2%, rgba(255, 125, 84, 0.42), transparent 60%),
+    radial-gradient(26rem 18rem at 58% 34%, rgba(248, 228, 46, 0.24), transparent 62%);
+  filter: blur(64px);
+}
+/* 明るい地では同じ濃さだと色が勝つ */
+:root[data-theme="light"] body.is-home::before {
+  opacity: 0.55;
+}
+/* 中身が短くてもフッタが画面の下に着くようにする。
+   builder は自前で高さを持つので外す。 */
+body:not(.is-app) {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+body:not(.is-app) > main {
+  flex: 1 0 auto;
+  /* 既定の min-width: auto だと、中のグリッドの最小幅 (列が 2 つ並ぶ幅) で横にはみ出す */
+  min-width: 0;
+  /* .wrap の左右の auto マージンがあると、縦並びの flex では幅が中身に縮むので、幅を明示する */
+  width: 100%;
+}
+
+/* 背景より前に出す。header は sticky + z-index を持っているので触らない
+   (ここで position を上書きすると sticky が壊れる) */
+body.is-home > main,
+body.is-home > .site-footer {
+  position: relative;
+  z-index: 1;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  body.is-home::before {
+    display: none;
+  }
+}
+
+.home-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 72px 0 8px;
+}
+.home-logo {
+  display: block;
+  width: 112px;
+  height: 112px;
+  margin-bottom: 24px;
+}
+.home-hero h1 {
+  margin: 0 0 12px;
+  font-size: clamp(30px, 5vw, 46px);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+.home-hero p {
+  margin: 0;
+  max-width: 34rem;
+  color: var(--text-dim);
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+@media (max-width: 640px) {
+  .home-hero {
+    padding-top: 48px;
+  }
+  .home-logo {
+    width: 88px;
+    height: 88px;
+  }
+}
+
+.home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 28px;
+}
+.home-actions .btn {
+  padding: 9px 18px;
+  font-size: 14px;
+}
+/* パッケージは種類ごとにまとめ、どれがどこに効くかを見出しで分ける */
+.tool-group {
+  max-width: 64rem;
+  margin: 56px auto 0;
+}
+.tool-group:last-of-type {
+  margin-bottom: 96px;
+}
+.tool-group h2 {
+  margin: 0 0 14px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+}
+.tool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(17rem, 100%), 1fr));
+  gap: 14px;
+}
+.tool-card {
+  display: block;
+  padding: 22px 22px 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+.tool-card:hover {
+  border-color: var(--text-faint);
+  background: var(--bg-soft);
+}
+.tool-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+  border-color: color-mix(in srgb, var(--tool-accent) 32%, transparent);
+  border-radius: 10px;
+  background: var(--bg-elev);
+  background: color-mix(in srgb, var(--tool-accent) 12%, var(--bg-elev));
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--tool-accent);
+}
+/* 既定はダーク。ライトは背景が明るいので濃い側へ振る */
+[data-accent="blue"] {
+  --tool-accent: #7ea2ff;
+}
+[data-accent="orange"] {
+  --tool-accent: #ff9b6b;
+}
+:root[data-theme="light"] [data-accent="blue"] {
+  --tool-accent: #3f63c4;
+}
+:root[data-theme="light"] [data-accent="orange"] {
+  --tool-accent: #b04a17;
+}
+[data-accent="green"] {
+  --tool-accent: #6fcf97;
+}
+[data-accent="purple"] {
+  --tool-accent: #c39bff;
+}
+:root[data-theme="light"] [data-accent="green"] {
+  --tool-accent: #1f7a4a;
+}
+:root[data-theme="light"] [data-accent="purple"] {
+  --tool-accent: #7040c4;
+}
+.tool-card h3 {
+  margin: 0 0 8px;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+}
+.tool-card p {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 14px;
+  line-height: 1.75;
+}
+.tool-note {
+  display: inline-block;
+  margin-top: 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-faint);
+}
+/* ---------- buttons ---------- */
+.btn {
+  font-family: inherit;
+  font-size: 13px;
+  padding: 7px 13px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn:hover {
+  border-color: var(--text-faint);
+}
+.btn.copy.copied {
+  border-color: var(--text);
+}
+.btn.primary {
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
+  font-weight: 700;
+}
+.btn.primary:hover {
+  filter: brightness(0.95);
+}
+
+.source-link {
+  display: inline-flex;
+  gap: 6px;
+  margin-top: 20px;
+  color: var(--text-dim);
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.source-link:hover {
+  color: var(--text);
+}
+
+/* ---------- theme builder (Figma風の全画面アプリ) ---------- */
+body.is-app {
+  overflow: hidden;
+}
+.main-app {
+  height: calc(100vh - 59px);
+}
+
+.builder-app {
+  height: 100%;
+  display: flex;
+}
+
+.builder-side {
+  width: 312px;
+  flex: 0 0 312px;
+  min-width: 0;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-soft);
+}
+.builder-side-head {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.builder-side-head strong {
+  font-size: 14px;
+  letter-spacing: -0.01em;
+}
+.builder-side-head p {
+  margin: 5px 0 0;
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+.builder-side-head code {
+  background: var(--bg-elev);
+  padding: 0 5px;
+  border-radius: 4px;
+}
+.builder-side-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2px 14px 14px;
+}
+.builder-side-foot {
+  border-top: 1px solid var(--border-soft);
+  padding: 11px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.side-actions {
+  display: flex;
+  gap: 8px;
+}
+.side-actions .btn {
+  flex: 1;
+  justify-content: center;
+  white-space: nowrap;
+}
+.side-actions .btn:not(.primary) {
+  flex: 0 0 auto;
+}
+
+.ctrl-group {
+  padding: 12px 0 4px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.ctrl-group:last-child {
+  border-bottom: 0;
+}
+.ctrl-group h2 {
+  font-size: 12px;
+  color: var(--text-faint);
+  letter-spacing: 0.04em;
+  margin: 0 0 6px;
+  text-transform: uppercase;
+}
+.ctrl {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 0;
+  cursor: pointer;
+}
+.ctrl-label {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.ctrl:hover .ctrl-label {
+  color: var(--text);
+}
+.ctrl-swatch input[type="color"] {
+  width: 42px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+}
+.ctrl-swatch input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 2px;
+}
+.ctrl-swatch input[type="color"]::-webkit-color-swatch {
+  border: none;
+  border-radius: 4px;
+}
+
+.builder-canvas {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-elev);
+}
+.builder-canvas-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-soft);
+  background: var(--bg);
+}
+.canvas-hint {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+.builder-stage {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 22px;
+  display: flex;
+  justify-content: center;
+}
+.builder-stage iframe {
+  width: 100%;
+  max-width: 1180px;
+  height: 100%;
+  min-height: 480px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 10px 44px rgba(0, 0, 0, 0.28);
+  display: block;
+}
+
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  overflow: hidden;
+}
+.seg-btn {
+  padding: 6px 15px;
+  background: var(--bg-soft);
+  color: var(--text-dim);
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+}
+.seg-btn + .seg-btn {
+  border-left: 1px solid var(--border);
+}
+.seg-btn.is-active {
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 600;
+}
+
+.builder-output {
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--code-bg);
+}
+.builder-output > summary {
+  cursor: pointer;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+.builder-output pre {
+  margin: 0;
+  padding: 0 12px 12px;
+  overflow: auto;
+  max-height: 160px;
+}
+.builder-output code#builder-css {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text);
+  white-space: pre;
+}
+
+@media (max-width: 820px) {
+  body.is-app {
+    overflow: auto;
+  }
+  .main-app {
+    height: auto;
+  }
+  .builder-app {
+    flex-direction: column;
+    height: auto;
+  }
+  .builder-side {
+    width: auto;
+    flex: none;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .builder-stage {
+    height: 70vh;
+  }
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 640px) {
+  .toolbar {
+    top: 58px;
+  }
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+  }
+  .site-header nav {
+    gap: 12px;
+    font-size: 13px;
+  }
+}
+/* GitHub はフッタにもあるので、ヘッダに収まらない幅では外す */
+@media (max-width: 420px) {
+  .site-header nav a[target="_blank"] {
+    display: none;
+  }
+}
+/* リンクを残すため、狭い幅ではサイト名を読み上げだけに残してロゴにする */
+@media (max-width: 520px) {
+  .brand-name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+@keyframes scrimIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes cardUp {
+  from {
+    transform: translateY(46px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+/* 行番号（Shikiが各行を span.line で出すのを counter で番号付け） */
+.demo-panel pre.astro-code code {
+  counter-reset: ln;
+}
+.demo-panel pre.astro-code .line {
+  counter-increment: ln;
+}
+.demo-panel pre.astro-code .line::before {
+  content: counter(ln);
+  display: inline-block;
+  width: 2em;
+  margin-right: 1.2em;
+  text-align: right;
+  color: rgba(255, 255, 255, 0.3);
+  user-select: none;
+}
+/* Shiki が出す最後の空行に番号が付くと、1 行多く見える */
+.demo-panel pre.astro-code .line:last-child:empty::before {
+  content: none;
+}
+
+/* パネル自身が枠を持つので、中の pre からは .doc pre の枠を外す */
+.demo-panel pre.astro-code {
+  margin: 0;
+  padding: 16px 18px;
+  border: 0;
+  border-radius: 0;
+  font-size: 13px;
+  line-height: 1.7;
+  /* 描画のタブ (iframe) と高さを揃える */
+  max-height: 70vh;
+  overflow: auto;
+}
+
+@media (max-width: 640px) {
+}
+
+/* ---------------------------------------------------------------------------
+ * Cosense Toolbox ドキュメント
+ * ------------------------------------------------------------------------- */
+
+/* 3 カラム。左がサイト内の目次、右がページ内の目次。
+ * 1200px を切ると 1 カラムになり、両方ともハンバーガーのドロワーへ移る。 */
+.doc-shell {
+  display: grid;
+  grid-template-columns: 14rem minmax(0, 1fr) 13rem;
+  grid-template-areas: "nav main toc";
+  gap: 0 40px;
+  align-items: start;
+}
+/* 幅があるうちは、包んでいる div を無かったことにして中身を列に置く */
+.doc-aside {
+  display: contents;
+}
+.doc-nav {
+  grid-area: nav;
+}
+.doc {
+  grid-area: main;
+}
+.doc-toc {
+  grid-area: toc;
+}
+.doc-menu-btn,
+.doc-scrim {
+  display: none;
+}
+
+/* サイト内の目次 */
+.doc-nav {
+  position: sticky;
+  top: 78px;
+  max-height: calc(100vh - 96px);
+  overflow-y: auto;
+  font-size: 13.5px;
+  scrollbar-width: thin;
+}
+.doc-nav-name {
+  display: block;
+  margin-bottom: 22px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+}
+.doc-nav section {
+  margin-bottom: 20px;
+}
+.doc-nav h2 {
+  margin: 0 0 6px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text);
+}
+/* 見出しの下にぶら下がる形にして、階層を線で示す */
+.doc-nav ul {
+  margin: 0;
+  padding: 0 0 0 12px;
+  list-style: none;
+  border-left: 1px solid var(--border);
+}
+.doc-nav a {
+  display: block;
+  padding: 5px 10px;
+  border-radius: 6px;
+  color: var(--text-dim);
+  text-decoration: none;
+}
+.doc-nav a:hover {
+  color: var(--text);
+  background: var(--bg-soft);
+}
+.doc-nav a[aria-current="page"] {
+  color: var(--text);
+  background: var(--bg-elev);
+  box-shadow: inset 2px 0 var(--text-dim);
+  font-weight: 600;
+}
+.doc-nav-repo {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-faint);
+}
+
+/* ページ内の目次 */
+.doc-toc {
+  position: sticky;
+  top: 78px;
+  max-height: calc(100vh - 96px);
+  overflow-y: auto;
+  font-size: 13px;
+  scrollbar-width: thin;
+}
+.doc-toc-head {
+  margin: 0 0 10px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text);
+}
+.doc-toc ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-left: 1px solid var(--border);
+}
+.doc-toc ul ul {
+  border: 0;
+}
+.doc-toc a {
+  display: block;
+  padding: 5px 0 5px 14px;
+  color: var(--text-dim);
+  text-decoration: none;
+}
+.doc-toc a:hover {
+  color: var(--text);
+}
+.doc-toc .toc-sub a {
+  padding-left: 28px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-faint);
+}
+.doc-toc .toc-sub a:hover {
+  color: var(--text-dim);
+}
+.doc-toc .toc-sub-sub a {
+  padding-left: 40px;
+}
+
+/* ---- 1200px 未満：ドロワー ---- */
+@media (max-width: 1199px) {
+  /* 明示しないと、行が埋まっているボタンが本文の下へ自動配置される。
+	   scrim と aside は fixed なのでグリッドから外れる */
+  .doc-shell {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "menu" "main";
+  }
+
+  /* ヘッダの下に貼り付く帯にする。ボタンだけを貼り付けると、スクロールした本文がその横に透けて重なる */
+  .doc-menu-btn {
+    grid-area: menu;
+    justify-self: stretch;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: sticky;
+    top: 59px;
+    z-index: 30;
+    margin: 0 -24px 8px;
+    padding: 12px 24px;
+    border: 0;
+    border-bottom: 1px solid var(--border-soft);
+    border-radius: 0;
+    background: var(--bg);
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: 13.5px;
+    cursor: pointer;
+  }
+  .doc-menu-btn:hover {
+    color: var(--text);
+  }
+  /* 3 本線。開いている間は × にする */
+  .doc-menu-icon,
+  .doc-menu-icon::before,
+  .doc-menu-icon::after {
+    display: block;
+    width: 15px;
+    height: 1.5px;
+    background: currentColor;
+    transition:
+      transform 0.18s ease,
+      opacity 0.18s ease;
+  }
+  .doc-menu-icon {
+    position: relative;
+  }
+  .doc-menu-icon::before,
+  .doc-menu-icon::after {
+    content: "";
+    position: absolute;
+    left: 0;
+  }
+  .doc-menu-icon::before {
+    top: -5px;
+  }
+  .doc-menu-icon::after {
+    top: 5px;
+  }
+  .doc-menu-btn[aria-expanded="true"] .doc-menu-icon {
+    background: transparent;
+  }
+  .doc-menu-btn[aria-expanded="true"] .doc-menu-icon::before {
+    transform: translateY(5px) rotate(45deg);
+  }
+  .doc-menu-btn[aria-expanded="true"] .doc-menu-icon::after {
+    transform: translateY(-5px) rotate(-45deg);
+  }
+
+  .doc-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(0, 0, 0, 0.45);
+  }
+  /* hidden 属性の display:none は author の display に負けるので、明示的に戻す */
+  .doc-scrim[hidden] {
+    display: none;
+  }
+
+  .doc-aside {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 50;
+    width: min(20rem, 84vw);
+    padding: 24px 22px 40px;
+    overflow-y: auto;
+    background: var(--bg);
+    border-right: 1px solid var(--border);
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+  }
+  .doc-aside.is-open {
+    transform: none;
+  }
+
+  /* ドロワーの中では縦に積むだけなので、貼り付きと高さの制限を外す */
+  .doc-nav,
+  .doc-toc {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+  .doc-toc {
+    margin-top: 28px;
+    padding-top: 22px;
+    border-top: 1px solid var(--border);
+  }
+
+  body.doc-menu-open {
+    overflow: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .doc-aside,
+  .doc-menu-icon,
+  .doc-menu-icon::before,
+  .doc-menu-icon::after {
+    transition: none;
+  }
+}
+
+/* 前後のページ */
+.doc-pager {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 64px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+/* 本文のリンクは下線を引くが、これはカードなので引かない。
+   後ろにある `.doc a` と詳細度で並ぶため、`.doc` を足して勝たせる */
+.doc .doc-pager a {
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  text-decoration: none;
+}
+.doc .doc-pager a:hover {
+  border-color: var(--text-faint);
+  background: var(--bg-soft);
+  text-decoration: none;
+}
+.doc-pager a.is-next {
+  grid-column: 2;
+  text-align: right;
+}
+.doc-pager span {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: var(--text-faint);
+}
+@media (max-width: 600px) {
+  .doc-pager {
+    grid-template-columns: 1fr;
+  }
+  .doc-pager a.is-next {
+    grid-column: 1;
+  }
+}
+
+.doc {
+  min-width: 0;
+  width: 100%;
+  max-width: 48rem;
+  line-height: 1.85;
+  margin-top: 24px;
+}
+.doc .page {
+  --cosense-text: var(--text);
+  --cosense-title: var(--text);
+  --cosense-bg: transparent;
+  --cosense-link: var(--text);
+  --cosense-link-hover: var(--text);
+  --cosense-code-text: var(--text);
+  --cosense-code-bg: var(--code-bg);
+  --cosense-quote-bg: var(--bg-soft);
+  --cosense-font: var(--font-sans);
+  --cosense-font-size: 16px;
+  --cosense-line-height: 1.85;
+  overflow-wrap: anywhere;
+}
+.doc .page .title {
+  margin: 0 0 28px;
+  font-size: clamp(28px, 4vw, 38px);
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+}
+.doc > :first-child {
+  margin-top: 0;
+}
+.doc h1 {
+  margin: 0 0 24px;
+  font-size: clamp(26px, 4vw, 34px);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+/* 見出しのパーマリンク。読んでいる間は邪魔をしないよう、行に重ねて置く */
+.doc :is(h2, h3, h4) {
+  position: relative;
+}
+.doc .heading-anchor {
+  position: absolute;
+  top: 0;
+  left: -1.1em;
+  width: 1.1em;
+  opacity: 0;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  color: var(--text-faint);
+  text-decoration: none;
+  cursor: pointer;
+}
+.doc :is(h2, h3, h4):hover .heading-anchor,
+.doc .heading-anchor:focus-visible {
+  opacity: 1;
+}
+.doc .heading-anchor:hover {
+  color: var(--text);
+}
+/* コピーした直後だけ、押した手応えとして表示を残す */
+.doc .heading-anchor.is-copied {
+  opacity: 1;
+  color: var(--text);
+}
+.doc .heading-anchor.is-copied::after {
+  content: "コピーしました";
+  position: absolute;
+  left: 50%;
+  top: -1.9em;
+  transform: translateX(-50%);
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--text);
+  color: var(--bg);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+/* 左に逃がす余白が無い幅では、見出しの後ろに置く */
+@media (max-width: 900px) {
+  .doc .heading-anchor {
+    position: static;
+    opacity: 1;
+    width: auto;
+    margin-left: 0.4em;
+  }
+  .doc .heading-anchor.is-copied::after {
+    top: -1.6em;
+  }
+}
+
+.doc h2 {
+  margin: 56px 0 16px;
+  padding-bottom: 10px;
+  font-size: 22px;
+  border-bottom: 1px solid var(--border);
+  scroll-margin-top: 78px;
+}
+.doc h3 {
+  margin: 40px 0 12px;
+  font-size: 17px;
+  font-family: var(--font-sans);
+  scroll-margin-top: 78px;
+}
+.doc h4,
+.doc h5 {
+  margin: 28px 0 10px;
+  font-size: 15px;
+}
+.doc p,
+.doc ul,
+.doc ol {
+  margin: 0 0 16px;
+}
+.doc ul,
+.doc ol {
+  padding-left: 1.4em;
+}
+.doc li {
+  margin-bottom: 4px;
+}
+.doc a {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: var(--text-faint);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 3px;
+}
+.doc a:hover {
+  text-decoration-color: currentColor;
+}
+/* Cosense のリンクは style の .link が下線を消すので、本文の中で見分けられるように戻す */
+.doc .page a.link {
+  text-decoration: underline;
+  text-decoration-color: var(--text-faint);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 3px;
+}
+.doc .page a.link:hover {
+  text-decoration-color: currentColor;
+}
+/* サイトの外へ出るリンク */
+.doc .page a.link-external::after {
+  content: "↗";
+  margin-left: 0.15em;
+  color: var(--text-faint);
+  font-size: 0.85em;
+}
+.doc .page .line {
+  min-height: 1.85em;
+  margin: 0 0 0.75em;
+}
+/* 空行は段落の区切りなので、行 1 つぶんではなく少しだけ空ける。
+   見出しとタイトルは自分の余白を持つので、その前後の空行は消す */
+.doc .page > .line:not(.code-block):has(> br:only-child) {
+  min-height: 0;
+  height: 0.5em;
+  margin: 0;
+}
+.doc .page > :is(.title, h2, h3) + .line:has(> br:only-child),
+.doc .page > .line:has(> br:only-child):has(+ :is(h2, h3)) {
+  display: none;
+}
+.doc .page > h2:first-of-type {
+  margin-top: 40px;
+}
+
+/* コードブロックは行ごとに分かれた要素なので、行の間を空けず 1 枚の面にする。
+   :has() は入れ子にできないので、ヘッダの行 (.code-start) と本体の行 (.code-body) を中身で見分ける */
+.doc .page .line.code-block {
+  margin: 0;
+}
+.doc .page .line:has(> .code-body) {
+  min-height: 1.6em;
+  padding: 0 14px;
+  border: 1px solid var(--border-soft);
+  border-block: 0;
+  background: var(--code-block-bg);
+  line-height: 1.6;
+}
+.doc .page .line:has(> .code-start) + .line:has(> .code-body) {
+  padding-top: 10px;
+  border-top: 1px solid var(--border-soft);
+}
+.doc .page .line:has(> .code-body):not(:has(+ .line > .code-body)) {
+  margin-bottom: 1.25em;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-soft);
+  border-bottom-left-radius: var(--radius);
+  border-bottom-right-radius: var(--radius);
+}
+.doc .page .code-block code {
+  padding: 0;
+  border-radius: 0;
+  background: none;
+}
+/* ファイル名は Cosense Web のバッジではなく、エディタのタブのようにブロックの上に付ける。
+   言語のアイコンと名前は、描画の拡張が入れる (src/lib/code-language.ts) */
+.doc .page {
+  --cosense-badge-bg: transparent;
+  --cosense-badge-text: var(--text-dim);
+  --cosense-code-font: var(--font-mono);
+}
+.doc .page .line:has(> .code-start) {
+  min-height: 0;
+  padding: 7px 14px;
+  border: 1px solid var(--border-soft);
+  border-bottom: 0;
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: var(--bg-soft);
+  line-height: 1.4;
+}
+.doc .page .line:has(> .code-body) code {
+  font-family: var(--font-mono);
+}
+.doc .page .code-block-start {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+}
+.doc .page .code-lang-icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+/* 色付けした字は、サイトのテーマに合わせて shiki の 2 つの色のどちらかを使う (astro.config.mjs) */
+:root:not([data-theme="light"]) .doc [style*="--shiki-dark"] {
+  color: var(--shiki-dark) !important;
+}
+:root[data-theme="light"] .doc [style*="--shiki-light"] {
+  color: var(--shiki-light) !important;
+}
+.doc .page .line[data-indent] {
+  min-height: 1.85em;
+}
+.doc .page .code-block {
+  margin-bottom: 0.15em;
+}
+.doc .page .code-block-start {
+  padding: 0;
+  color: var(--text-dim);
+  font-size: 12px;
+}
+.doc .page .code-body {
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  font-size: 0.9em;
+}
+.doc .page .table {
+  margin: 0 0 24px;
+}
+.doc .page .table td {
+  padding: 6px 10px;
+}
+.doc code {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: var(--code-bg);
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+}
+.doc pre {
+  margin: 0 0 20px;
+  padding: 16px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.65;
+}
+.doc pre code {
+  padding: 0;
+  background: none;
+  font-size: inherit;
+}
+.doc table {
+  display: block;
+  margin: 0 0 20px;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+.doc th,
+.doc td {
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+.doc th {
+  background: var(--bg-soft);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.doc td code {
+  white-space: nowrap;
+}
+/* ドキュメントの引用は注意書きにしか使っていないので、警告として見せる */
+.doc blockquote {
+  margin: 0 0 20px;
+  padding: 12px 16px;
+  border-left: 3px solid var(--warn);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--warn-bg);
+}
+.doc blockquote strong {
+  color: var(--warn);
+}
+.doc blockquote > :last-child {
+  margin-bottom: 0;
+}
+.doc hr {
+  margin: 40px 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
+/* 地図と Apple Music は、このサイトが足した埋め込み (src/lib/embed.ts)。 */
+.doc .embed-map,
+.doc .embed-apple-music {
+  display: block;
+  width: 100%;
+  margin: 0 0 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-soft);
+}
+
+.doc .embed-map {
+  aspect-ratio: 16 / 9;
+}
+
+.doc .embed-apple-music {
+  max-width: 660px;
+}

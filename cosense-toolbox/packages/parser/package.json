@@ -1,0 +1,120 @@
+{
+  "name": "@cosense-toolbox/parser",
+  "version": "0.1.0-beta.7",
+  "description": "Cosense (Scrapbox) notation parser — every node carries its source position. Zero runtime deps except effect.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "types": "./dist/index.d.cts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./schema": {
+      "import": {
+        "types": "./dist/schema.d.mts",
+        "default": "./dist/schema.mjs"
+      },
+      "require": {
+        "types": "./dist/schema.d.cts",
+        "default": "./dist/schema.cjs"
+      }
+    },
+    "./utils": {
+      "import": {
+        "types": "./dist/utils.d.mts",
+        "default": "./dist/utils.mjs"
+      },
+      "require": {
+        "types": "./dist/utils.d.cts",
+        "default": "./dist/utils.cjs"
+      }
+    },
+    "./extensions": {
+      "import": {
+        "types": "./dist/extensions.d.mts",
+        "default": "./dist/extensions.mjs"
+      },
+      "require": {
+        "types": "./dist/extensions.d.cts",
+        "default": "./dist/extensions.cjs"
+      }
+    },
+    "./compile": {
+      "import": {
+        "types": "./dist/compile.d.mts",
+        "default": "./dist/compile.mjs"
+      },
+      "require": {
+        "types": "./dist/compile.d.cts",
+        "default": "./dist/compile.cjs"
+      }
+    },
+    "./html": {
+      "import": {
+        "types": "./dist/html.d.mts",
+        "default": "./dist/html.mjs"
+      },
+      "require": {
+        "types": "./dist/html.d.cts",
+        "default": "./dist/html.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "bun run build",
+    "lint": "eslint .",
+    "format:check": "prettier --check . --ignore-path ../../.gitignore --ignore-path ../../.prettierignore"
+  },
+  "dependencies": {
+    "@types/hast": "^3.0.4",
+    "effect": "^3.22.1",
+    "hast-util-to-html": "^9.0.5"
+  },
+  "devDependencies": {
+    "fast-check": "^3.23.1",
+    "tsdown": "^0.22.14",
+    "typescript": "^6.0.0",
+    "vitest": "^2.1.8"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "keywords": [
+    "cosense",
+    "scrapbox",
+    "parser",
+    "ast",
+    "syntax",
+    "effect"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qaynam/cosense-toolbox.git",
+    "directory": "packages/parser"
+  }
+}
