@@ -1,0 +1,48 @@
+/* eslint-env browser */
+
+import {EventEmitter} from 'events'
+import {hasNewVersionCache, cacheExists} from '../lib/cache-watch'
+
+// const debug = require('../lib/debug')(__filename)
+
+export default new class AssetsCacheStore extends EventEmitter {
+  constructor () {
+    super()
+    this._newVersion = null
+    this._hasCache = false
+
+    this.watchCacheStore = this.watchCacheStore.bind(this)
+    this.watchCacheStore()
+    setInterval(this.watchCacheStore, 1000)
+  }
+
+  get version () {
+    return document.documentElement.dataset.assetsVersion
+  }
+
+  hasCache () {
+    return this._hasCache
+  }
+
+  get newVersion () {
+    return this._newVersion
+  }
+
+  hasUpdate () {
+    return !!this._newVersion
+  }
+
+  async watchCacheStore () {
+    // debug('watchCacheStore')
+    const newVersion = await hasNewVersionCache(this.version)
+    const hasCache = await cacheExists(this.version)
+    if (newVersion) {
+      this._newVersion = newVersion
+      this.emit('change')
+    }
+    if (this._hasCache !== hasCache) {
+      this._hasCache = hasCache
+      this.emit('change')
+    }
+  }
+}()
