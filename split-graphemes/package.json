@@ -1,0 +1,66 @@
+{
+  "name": "split-graphemes",
+  "version": "0.5.0",
+  "description": "Divide the string into graphemes.",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "run-s build:*",
+    "build:clean": "if test -d ./lib; then rm -r ./lib; fi",
+    "build:babel": "babel src/ --out-dir lib/",
+    "pretest": "npm run build",
+    "test": "run-s test:*",
+    "test:standard": "standard",
+    "test:mocha": "mocha test/*.js -r @babel/register -r @babel/polyfill --exit",
+    "prepublishOnly": "npm test",
+    "postpublish": "git push origin --tags && git push origin master"
+  },
+  "keywords": [
+    "grapheme",
+    "emoji",
+    "abugida",
+    "arabic",
+    "brahmic",
+    "bengali",
+    "devanagari",
+    "gujarati",
+    "hebrew",
+    "japanese",
+    "kannada",
+    "khmer",
+    "lao",
+    "malayalam",
+    "myanmar",
+    "NFD",
+    "tamil",
+    "telugu",
+    "thai",
+    "tibetan"
+  ],
+  "files": [
+    "README.md",
+    "package.json",
+    "lib"
+  ],
+  "author": "Daiki Iizuka <daiiz@notainc.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/cli": "^7.4.3",
+    "@babel/core": "^7.4.3",
+    "@babel/polyfill": "^7.4.3",
+    "@babel/preset-env": "^7.4.3",
+    "@babel/register": "^7.4.0",
+    "chai": "^4.2.0",
+    "mocha": "^6.1.3",
+    "npm-run-all": "^4.1.5",
+    "standard": "^12.0.1"
+  },
+  "standard": {
+    "ignore": [
+      "/lib"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nota/split-graphemes.git"
+  }
+}
